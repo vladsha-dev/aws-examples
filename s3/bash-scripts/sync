@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+    echo "Usage: ./sync <source> <destination> <profile>"
+    echo "Example local -> s3: ./sync ./local-dir s3://my-bucket/path personal"
+    echo "Example s3 -> local: ./sync s3://my-bucket/path ./local-dir personal"
+    exit 1
+fi
+
+source_path="$1"
+destination_path="$2"
+profile_name="$3"
+
+aws s3 sync "$source_path" "$destination_path" \
+    --profile "$profile_name"

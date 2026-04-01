@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "There needs to be a bucket name and a profile name provided"
+    exit 1
+fi
+
+bucket_name="$1"
+profile_name="$2"
+
+file_count=$((RANDOM % 5 + 1))
+temp_dir="$(mktemp -d)"
+
+cleanup() {
+    rm -rf "$temp_dir"
+}
+
+trap cleanup EXIT
+
+for ((i = 1; i <= file_count; i++)); do
+    random_suffix="$(printf '%04x' "$RANDOM")"
+    object_key="random-file-${i}-${random_suffix}.txt"
+    file_path="$temp_dir/$object_key"
+
+    dd if=/dev/urandom of="$file_path" bs=256 count=1 status=none
+
+    aws s3api put-object \
+        --bucket "$bucket_name" \
+        --profile "$profile_name" \
+        --key "$object_key" \
+        --body "$file_path" >/dev/null
+
+    echo "Uploaded $object_key"
+done
+
+echo "Uploaded $file_count random file(s) to $bucket_name"
